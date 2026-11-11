@@ -1,0 +1,40 @@
+// アイコンの見た目
+// 詳細度を 0 にするため、セレクターは :where() で包む
+// 要素には、共通のクラス（frg-icon）と種類のクラス（frg-fonticon・frg-svgicon）を並べて付ける
+
+// どの種類にも共通の箱。大きさは font-size で、色は currentColor で決まる
+:where(.frg-icon) {
+  display: inline-block;
+  flex-shrink: 0;
+  box-sizing: content-box;
+  width: 1em;
+  height: 1em;
+  // フォントが届かなかったときに、名前の文字がはみ出さないようにする
+  overflow: hidden;
+  // 文の中に置いたときに、文字の中央あたりにそろえる
+  vertical-align: -0.125em;
+  line-height: 1;
+}
+
+// フォントのアイコン（合字・クラス・コードポイント）
+:where(.frg-fonticon) {
+  font-style: normal;
+  font-weight: normal;
+  letter-spacing: normal;
+  text-transform: none;
+  text-align: center;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  // 合字で名前をアイコンにする
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  // 合字の元の文字（名前）が選択・コピーされないようにする
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+// SVG のアイコン（SVG の部品・スプライト）の frg-svgicon には、CSS を当てない
+// fill を CSS で指定すると、線で描くアイコン（lucide-react など）が <svg> に付けた fill="none" の属性より強くなり、塗りつぶされるため。
+// 子要素を描く SvgIconFrame は、fill="currentColor" を既定の属性として付ける
