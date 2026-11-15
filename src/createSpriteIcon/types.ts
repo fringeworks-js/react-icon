@@ -1,6 +1,5 @@
 import type { ValueProps } from '@fringeworks/react-contract';
-import type { ReactElement } from 'react';
-import type { SvgIconSlotProps } from '../createSvgIcon';
+import type { ComponentPropsWithRef, ReactElement } from 'react';
 
 /**
  * スプライトのアイコンのセットの定義
@@ -17,10 +16,10 @@ export type SpriteIconDefinition<V extends string> = {
 };
 
 /**
- * `createSpriteIcon` で作ったアイコンの部品のプロパティ
+ * `createSpriteIcon` で作ったアイコンの部品のプロパティ\n * `value` 以外は、アイコンの箱の `<span>` に渡す
  */
 export type SpriteIconProps<V extends string> = ValueProps<V> &
-  SvgIconSlotProps;
+  Omit<ComponentPropsWithRef<'span'>, 'children'>;
 
 /**
  * `createSpriteIcon` で作ったアイコンの部品

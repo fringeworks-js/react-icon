@@ -1,11 +1,11 @@
 import { render } from '@testing-library/react';
 import createFontIcon from '../createFontIcon';
 import createSpriteIcon from '../createSpriteIcon';
-import createSvgIcon, { type SvgIconSlotProps } from '../createSvgIcon';
+import createSvgIcon from '../createSvgIcon';
 import createPrefixedIcon from './createPrefixedIcon';
 
-function LogoIcon(props: SvgIconSlotProps) {
-  return <svg data-icon="logo" {...props} />;
+function LogoIcon() {
+  return <svg data-icon="logo" />;
 }
 
 describe('createPrefixedIcon', () => {
@@ -28,7 +28,9 @@ describe('createPrefixedIcon', () => {
       '/icons.svg#cart',
     );
     expect(
-      container.querySelector('[data-icon="logo"]')?.getAttribute('class'),
+      container
+        .querySelector('[data-icon="logo"]')
+        ?.parentElement?.getAttribute('class'),
     ).toBe('frg-icon frg-svgicon');
   });
 

@@ -2,18 +2,45 @@
 // 詳細度を 0 にするため、セレクターは :where() で包む
 // 要素には、共通のクラス（frg-icon）と種類のクラス（frg-fonticon・frg-svgicon）を並べて付ける
 
-// どの種類にも共通の箱。大きさは font-size で、色は currentColor で決まる
+// どの種類にも共通の箱。色は currentColor で決まる（planning/react-icon/plan.md の IC-16・IC-17）
+// 大きさは「周りの文字の大きさ」×「場面の倍率」×「セットの倍率」。--frg-icon-size（長さ）を決めると、その大きさになる
+// - --frg-icon-scale: 場面の倍率（数値）。周りの文字と同じに見える大きさの何倍か。ボタンなど、アイコンを置く部品が決める（既定は 1）
+// - --frg-icon-glyphScale: セットの倍率（数値）。そのセットの字形を、周りの文字と同じ大きさに見せる倍率。アダプターが決める（既定は 1）
+// - --frg-icon-size: 大きさ（長さ）。倍率で決めずに、大きさをそのまま決めるときに使う
+// 縦の位置は、文字のベースラインを基準にする。アイコンの真ん中を、ベースラインから周りの文字の大きさの
+// --frg-icon-centerY 倍（既定は 0.37。日本語・英字の大文字の真ん中の高さ）に置く。行の箱の真ん中を基準にすると、
+// 文字が行の箱のどこに描かれるかはフォントで違うので、フォントによってずれる。
+// 文の中でも、横に並べる部品（align-items: baseline）の中でも同じ位置になるよう、箱の中の擬似要素（::before）を
+// 箱のベースラインにする（inline-flex の箱のベースラインは、最初の子のベースライン。中身の無い擬似要素は、下の辺がベースラインになる）。
+// 擬似要素は内容の箱の真ん中に置き、上の margin で下にずらす（margin を含めた箱が真ん中に来るので、margin の半分だけ下がる）。
+// 利用者が箱に上下同じだけの余白や枠を付けても、位置は変わらない
 :where(.frg-icon) {
-  display: inline-block;
+  display: inline-flex;
   flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
   box-sizing: content-box;
   width: 1em;
   height: 1em;
-  // フォントが届かなかったときに、名前の文字がはみ出さないようにする
-  overflow: hidden;
-  // 文の中に置いたときに、文字の中央あたりにそろえる
-  vertical-align: -0.125em;
+  // フォントが届かなかったときに、名前の文字がはみ出さないようにする。
+  // overflow: hidden にすると、ブラウザーによっては箱の下の辺がベースラインになるため、clip-path で切る
+  clip-path: inset(0);
+  font-size: var(
+    --frg-icon-size,
+    calc(1em * var(--frg-icon-scale, 1) * var(--frg-icon-glyphScale, 1))
+  );
   line-height: 1;
+}
+
+// 箱のベースライン。箱の真ん中から「周りの文字の大きさ × --frg-icon-centerY」だけ下に置く。
+// 周りの文字の大きさは、箱の大きさ（1em）を倍率で割って求める（--frg-icon-size で決めたときは、倍率からの見積もりになる）
+:where(.frg-icon)::before {
+  content: '';
+  align-self: center;
+  margin-top: calc(
+    2 * var(--frg-icon-centerY, 0.37) * 1em /
+      (var(--frg-icon-scale, 1) * var(--frg-icon-glyphScale, 1))
+  );
 }
 
 // フォントのアイコン（合字・クラス・コードポイント）
@@ -35,6 +62,11 @@
   user-select: none;
 }
 
-// SVG のアイコン（SVG の部品・スプライト）の frg-svgicon には、CSS を当てない
-// fill を CSS で指定すると、線で描くアイコン（lucide-react など）が <svg> に付けた fill="none" の属性より強くなり、塗りつぶされるため。
-// 子要素を描く SvgIconFrame は、fill="currentColor" を既定の属性として付ける
+// SVG のアイコン（SVG の部品・スプライト）。箱の中の <svg> を、箱いっぱいに描く。
+// fill は CSS で指定しない。線で描くアイコン（lucide-react など）が <svg> に付けた fill="none" の属性より強くなり、塗りつぶされるため。
+// SvgIconFrame は、fill="currentColor" を既定の属性として付ける
+:where(.frg-svgicon) > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

@@ -1,10 +1,9 @@
 import { render } from '@testing-library/react';
-import { createRef } from 'react';
+import { createRef, type SVGProps } from 'react';
 import createSvgIcon from './createSvgIcon';
-import type { SvgIconSlotProps } from './types';
 
 // 線で描くアイコン（lucide-react などと同じく、fill="none" の属性を付ける）
-function HomeIcon(props: SvgIconSlotProps) {
+function HomeIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       width={24}
@@ -20,19 +19,22 @@ function HomeIcon(props: SvgIconSlotProps) {
   );
 }
 
-function MenuIcon(props: SvgIconSlotProps) {
-  return <svg viewBox="0 0 24 24" data-icon="menu" {...props} />;
+function MenuIcon() {
+  return <svg viewBox="0 0 24 24" data-icon="menu" />;
 }
 
 describe('createSvgIcon', () => {
   const Icon = createSvgIcon({ home: HomeIcon, menu: MenuIcon });
 
-  it('value の名前に対応する部品を、クラスを付けて描く', () => {
+  it('value の名前に対応する部品を、クラスを付けた箱の span の中に描く', () => {
     const { container } = render(<Icon value="home" />);
-    const svg = container.querySelector('svg');
-    expect(svg?.getAttribute('data-icon')).toBe('home');
-    expect(svg?.getAttribute('class')).toBe('frg-icon frg-svgicon');
-    expect(svg?.getAttribute('aria-hidden')).toBe('true');
+    const span = container.firstElementChild;
+    expect(span?.tagName).toBe('SPAN');
+    expect(span?.getAttribute('class')).toBe('frg-icon frg-svgicon');
+    expect(span?.getAttribute('aria-hidden')).toBe('true');
+    expect(span?.querySelector(':scope > svg')?.getAttribute('data-icon')).toBe(
+      'home',
+    );
   });
 
   it('部品の fill などの属性は、そのまま使う', () => {
@@ -40,25 +42,28 @@ describe('createSvgIcon', () => {
     const svg = container.querySelector('svg');
     expect(svg?.getAttribute('fill')).toBe('none');
     expect(svg?.getAttribute('stroke')).toBe('currentColor');
+    expect(svg?.getAttribute('class')).toBeNull();
   });
 
-  it('その他の props を部品に渡す', () => {
-    const ref = createRef<SVGSVGElement>();
+  it('その他の props を箱の span に渡す', () => {
+    const ref = createRef<HTMLSpanElement>();
     const { getByRole } = render(
       <Icon value="menu" aria-label="メニュー" className="mine" ref={ref} />,
     );
-    const svg = getByRole('img', { name: 'メニュー' });
-    expect(svg.getAttribute('data-icon')).toBe('menu');
-    expect(svg.getAttribute('class')).toBe('frg-icon frg-svgicon mine');
-    expect(ref.current).toBe(svg);
+    const span = getByRole('img', { name: 'メニュー' });
+    expect(span.tagName).toBe('SPAN');
+    expect(span.getAttribute('class')).toBe('frg-icon frg-svgicon mine');
+    expect(span.querySelector('svg')?.getAttribute('data-icon')).toBe('menu');
+    expect(ref.current).toBe(span);
   });
 
   it('対応表に無い名前は、空の箱を描く（Object.prototype のプロパティも拾わない）', () => {
     const LooseIcon = createSvgIcon<string>({ home: HomeIcon });
     for (const value of ['unknown', 'toString']) {
       const { container, unmount } = render(<LooseIcon value={value} />);
-      const svg = container.querySelector('svg');
-      expect(svg?.getAttribute('class')).toBe('frg-icon frg-svgicon');
+      const span = container.firstElementChild;
+      expect(span?.getAttribute('class')).toBe('frg-icon frg-svgicon');
+      const svg = span?.querySelector('svg');
       expect(svg?.getAttribute('data-icon')).toBeNull();
       expect(svg?.childElementCount).toBe(0);
       unmount();

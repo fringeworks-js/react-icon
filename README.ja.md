@@ -66,20 +66,16 @@ const Icon = createSvgIcon({ home: House, search: Search });
 <Icon value="home" />; // value の型は 'home' | 'search'
 ```
 
-組み込む部品は、受け取った props（`className`・`style`・`aria-*`・`ref` など）を `<svg>` に渡すものにします。部品の `fill`・`stroke` などの属性は、部品のものをそのまま使います（線で描くアイコンの `fill="none"` も保たれます）。
+組み込む部品は、`<svg>` を描くものにします。作った部品は、アイコンの箱の `<span>` の中に、組み込んだ部品を描きます。受け取った props（`className`・`style`・`aria-*`・`ref` など）は `<span>` に渡し、組み込んだ部品には props を渡しません。部品の `fill`・`stroke` などの属性は、部品のものをそのまま使い（線で描くアイコンの `fill="none"` も保たれます）、大きさは箱に合わせます。
 
-SVG を手で書くときは、`SvgIconFrame` を入れ物に使えます。
+SVG を手で書くときは、`<svg>` を描く部品を組み込むか、`SvgIconFrame` をそのまま使います。
 
 ```tsx
-import { SvgIconFrame, type SvgIconSlotProps } from '@fringeworks/react-icon';
+import { SvgIconFrame } from '@fringeworks/react-icon';
 
-function LogoIcon(props: SvgIconSlotProps) {
-  return (
-    <SvgIconFrame {...props}>
-      <path d="M12 2 2 22h20z" />
-    </SvgIconFrame>
-  );
-}
+<SvgIconFrame aria-label="ロゴ">
+  <path d="M12 2 2 22h20z" />
+</SvgIconFrame>;
 ```
 
 ### SVG のスプライト
@@ -108,9 +104,22 @@ const AnyIcon = createPrefixedIcon({ ms: Symbol, brand: BrandIcon });
 <AnyIcon value="ms:home" />; // value の型は 'ms:home' | 'ms:search' | 'brand:logo' | 'brand:cart'
 ```
 
-### 大きさと色
+### 大きさ・位置・色
 
-どのアイコンも、`1em` の正方形の箱に描きます。大きさは `font-size`、色は `color` で変えます（文やボタンの中では、周りの文字と同じ大きさ・色になります）。
+どのアイコンも、正方形の箱に描きます。色は `color` で変えます（文やボタンの中では、周りの文字と同じ色になります）。大きさは、既定では周りの文字と同じに見える大きさで、`font-size` を指定すればその大きさになります。
+
+既定の大きさは、周りの文字の大きさに、次の2つの倍率を掛けたもの（`calc(1em * var(--frg-icon-scale, 1) * var(--frg-icon-glyphScale, 1))`）です。
+
+| CSS 変数                | 既定値 | 説明                                                                                                                                                                                           |
+| ----------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--frg-icon-scale`      | `1`    | 場面の倍率（数値）。周りの文字と同じに見える大きさの何倍か。アイコンを置く部品（ボタンなど）が、中のアイコンのために決める                                                                     |
+| `--frg-icon-glyphScale` | `1`    | セットの倍率（数値）。そのセットの字形を、周りの文字と同じ大きさに見せる倍率。字形の周りに余白の多いセットのアダプターが決める（例: react-icon-material-symbols は `1.25`）                    |
+| `--frg-icon-size`       | —      | 大きさ（長さ）。倍率ではなく、大きさをそのまま決めるときに使う。決めると、倍率は大きさに使わない                                                                                               |
+| `--frg-icon-centerY`    | `0.37` | 縦の位置（数値）。アイコンの真ん中を、文字のベースラインから、周りの文字の大きさの何倍の高さに置くか。既定は、日本語と英字の大文字の真ん中の高さ。小文字だけの英文などに合わせたいときに変える |
+
+場面の倍率とセットの倍率を分けているので、ボタンなどの部品は、組み込んだアイコンのセットを知らなくても、どのセットでも同じくらいに見える大きさにできます。
+
+縦の位置は、文字のベースラインを基準に決めます。文字が行の箱のどこに描かれるかはフォントによって違いますが、ベースラインから見た文字の高さは、どのフォントでもあまり変わらないためです。文の中でも、横に並べる部品の中でも、同じ位置になります。横に並べる部品（flex）で文字とそろえるには、`align-items: baseline` にします（`center` にすると、行の箱の真ん中にそろい、フォントによってずれます）。
 
 ```tsx
 <Icon value="home" style={{ fontSize: 24, color: 'tomato' }} />
@@ -152,13 +161,13 @@ function Toolbar() {
 
 ## API
 
-| 名前                                     | 説明                                                         |
-| ---------------------------------------- | ------------------------------------------------------------ |
-| `createFontIcon(definition)`             | アイコンフォントのセットの定義から、アイコンの部品を作る     |
-| `createFontIconProps(definition, props)` | アイコンフォントの要素に渡す props を作る                    |
-| `createSvgIcon(icons)`                   | 名前と SVG の部品の対応表から、アイコンの部品を作る          |
-| `SvgIconFrame`                           | 子要素（`<path>` など）を入れる `<svg>` の枠の部品           |
-| `createSpriteIcon(definition)`           | SVG のスプライトのセットの定義から、アイコンの部品を作る     |
+| 名前                                     | 説明                                                           |
+| ---------------------------------------- | -------------------------------------------------------------- |
+| `createFontIcon(definition)`             | アイコンフォントのセットの定義から、アイコンの部品を作る       |
+| `createFontIconProps(definition, props)` | アイコンフォントの要素に渡す props を作る                      |
+| `createSvgIcon(icons)`                   | 名前と SVG の部品の対応表から、アイコンの部品を作る            |
+| `SvgIconFrame`                           | 子要素（`<path>` など）を入れる `<svg>` の枠の部品             |
+| `createSpriteIcon(definition)`           | SVG のスプライトのセットの定義から、アイコンの部品を作る       |
 | `createPrefixedIcon(icons)`              | `接頭辞:名前` の値で、複数のセットから選ぶアイコンの部品を作る |
 
 どの部品も、受け取った props を要素（`<span>` か `<svg>`）に渡します。`className`・`style` は合成し、同じプロパティは受け取った値を優先します。
@@ -173,27 +182,27 @@ createFontIcon<V extends string>(
 
 アイコンフォントのセットの定義から、アイコンの部品を作ります。作った部品は `value` でアイコンの名前を受け取り、`<span>` に描きます。
 
-| 定義のキー    | 型                                                              | 説明                                                                   |
-| ------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `fontFamily?` | `string`                                                        | 要素の `font-family`。`webFonts` もここから作る                        |
-| `fontWeight?` | `number \| 'normal' \| 'bold'`                                  | 要素の `font-weight`。`webFonts` にも入れる                            |
-| `fontStyle?`  | `'normal' \| 'italic'`                                          | 要素の `font-style`。`webFonts` にも入れる                             |
-| `className?`  | `string \| ((name: V) => string)`                               | 要素に足すクラス。関数はアイコンの名前を受け取ってクラスを返す         |
-| `text?`       | `'name' \| 'none' \| Record<V, string> \| ((name: V) => string)` | 要素の文字。既定は `'name'`。下の表                                    |
+| 定義のキー    | 型                                                               | 説明                                                           |
+| ------------- | ---------------------------------------------------------------- | -------------------------------------------------------------- |
+| `fontFamily?` | `string`                                                         | 要素の `font-family`。`webFonts` もここから作る                |
+| `fontWeight?` | `number \| 'normal' \| 'bold'`                                   | 要素の `font-weight`。`webFonts` にも入れる                    |
+| `fontStyle?`  | `'normal' \| 'italic'`                                           | 要素の `font-style`。`webFonts` にも入れる                     |
+| `className?`  | `string \| ((name: V) => string)`                                | 要素に足すクラス。関数はアイコンの名前を受け取ってクラスを返す |
+| `text?`       | `'name' \| 'none' \| Record<V, string> \| ((name: V) => string)` | 要素の文字。既定は `'name'`。下の表                            |
 
-| `text` の値 | 要素の文字                                                         |
-| ----------- | ------------------------------------------------------------------ |
-| `'name'`    | アイコンの名前をそのまま入れる（合字）                             |
-| `'none'`    | 何も入れない（クラスで描くもの）                                   |
+| `text` の値 | 要素の文字                                                           |
+| ----------- | -------------------------------------------------------------------- |
+| `'name'`    | アイコンの名前をそのまま入れる（合字）                               |
+| `'none'`    | 何も入れない（クラスで描くもの）                                     |
 | 対応表      | 名前に対応する文字を入れる（コードポイント）。無い名前は何も入れない |
-| 関数        | 戻り値を入れる                                                     |
+| 関数        | 戻り値を入れる                                                       |
 
 作った部品の静的なプロパティ:
 
-| プロパティ    | 型                           | 説明                                                                     |
-| ------------- | ---------------------------- | ------------------------------------------------------------------------ |
-| `webFonts`    | `readonly FontIconWebFont[]` | 描くのに要る Web フォント。定義に `fontFamily` が無ければ空の配列        |
-| `displayName` | `string`                     | `FontIcon(<fontFamily>)`。`fontFamily` が無ければ `FontIcon`             |
+| プロパティ    | 型                           | 説明                                                              |
+| ------------- | ---------------------------- | ----------------------------------------------------------------- |
+| `webFonts`    | `readonly FontIconWebFont[]` | 描くのに要る Web フォント。定義に `fontFamily` が無ければ空の配列 |
+| `displayName` | `string`                     | `FontIcon(<fontFamily>)`。`fontFamily` が無ければ `FontIcon`      |
 
 ### `createFontIconProps`
 
@@ -216,7 +225,7 @@ createFontIconProps<V extends string>(
 createSvgIcon<V extends string>(icons: SvgIconSet<V>): SvgIconComponent<V>
 ```
 
-アイコンの名前と SVG の部品の対応表から、アイコンの部品を作ります。名前の型は対応表のキーから決まります。対応表に無い名前を受け取ったときは、空の箱（`SvgIconFrame`）を描きます。
+アイコンの名前と SVG の部品の対応表から、アイコンの部品を作ります。名前の型は対応表のキーから決まります。作った部品は、アイコンの箱の `<span>` の中に、対応する部品を描きます。`value` 以外の props は `<span>` に渡し、`ref` は `<span>` を指します。対応表に無い名前を受け取ったときは、空の箱（`SvgIconFrame`）を描きます。
 
 ### `SvgIconFrame`
 
@@ -224,7 +233,7 @@ createSvgIcon<V extends string>(icons: SvgIconSet<V>): SvgIconComponent<V>
 SvgIconFrame(props: SvgIconFrameProps): ReactElement
 ```
 
-子要素（`<path>` など）を入れる `<svg>` の枠の部品です。`viewBox` の既定は `'0 0 24 24'`、`fill` の既定は `'currentColor'` で、どちらも props で変えられます。`ref` は `<svg>` を指します。
+アイコンの箱の `<span>` の中に `<svg>` を描き、子要素（`<path>` など）を入れる部品です。`viewBox`（既定は `'0 0 24 24'`）・`fill`（既定は `'currentColor'`）・`children` は `<svg>` に、それ以外の props は `<span>` に渡します。`ref` は `<span>` を指します。
 
 ### `createSpriteIcon`
 
@@ -234,10 +243,10 @@ createSpriteIcon<V extends string>(
 ): SpriteIconComponent<V>
 ```
 
-SVG のスプライトのセットの定義から、アイコンの部品を作ります。作った部品は、`SvgIconFrame` の中に `<use>` を描きます。名前に合う `<symbol>` が無ければ、空の箱になります。
+SVG のスプライトのセットの定義から、アイコンの部品を作ります。作った部品は、`SvgIconFrame` の中に `<use>` を描きます（`value` 以外の props は、アイコンの箱の `<span>` に渡します）。名前に合う `<symbol>` が無ければ、空の箱になります。
 
-| 定義のキー | 型                                | 説明                                                                                                                                                                 |
-| ---------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 定義のキー | 型                                | 説明                                                                                                                                                                                                      |
+| ---------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `href`     | `string \| ((name: V) => string)` | `<use>` の `href`。文字列はスプライトのファイルの URL で、`#` と名前を続ける（`''` はページの中の `<symbol>`）。関数はアイコンの名前を受け取って `href` を返す（`<symbol>` の id に接頭辞がある場合など） |
 
 ### `createPrefixedIcon`
@@ -250,42 +259,42 @@ createPrefixedIcon<S extends PrefixedIconSet>(
 
 接頭辞とアイコンの部品の対応表から、`接頭辞:名前` の値でアイコンを選ぶ部品を作ります。`value` を最初の `:` で分け、接頭辞の部品に名前と props を渡します。
 
-- `value` 以外に受け取る props は、どの種類の部品にも渡せる `PrefixedIconSlotProps`（`className`・`style`・`id`・`title`・`role`・`aria-hidden`・`aria-label`・`aria-labelledby`・`aria-describedby`）だけです。`ref` やイベントのハンドラーは渡せません。
+- `value` 以外に受け取る props は、どの種類の部品にも渡せるもの（react-contract の `IconSlotProps`。`className`・`style`・`id`・`title`・`role`・`aria-hidden`・`aria-label`・`aria-labelledby`・`aria-describedby`）だけです。`ref` やイベントのハンドラーは渡せません。
 - 対応表に無い接頭辞や、`:` の無い値を受け取ったときは、空の箱（`<span class="frg-icon">`）を描きます。
 - 接頭辞はあるが名前がそのセットに無いときの扱いは、そのセットの部品に任せます。
 
 ### CSS のクラス
 
-| クラス         | 付く要素                                     | 説明                                                                             |
-| -------------- | -------------------------------------------- | -------------------------------------------------------------------------------- |
-| `frg-icon`     | すべてのアイコン                             | `1em` の正方形の箱                                                               |
-| `frg-fonticon` | アイコンフォントのアイコン                   | 合字を有効にし、文字の間隔や折り返しなどを周りから受け継がないようにする         |
-| `frg-svgicon`  | SVG の部品・`SvgIconFrame`・スプライトのアイコン | CSS の規則は持たない。SVG のアイコンをまとめて選ぶためのクラス                  |
+| クラス         | 付く要素                                         | 説明                                                                     |
+| -------------- | ------------------------------------------------ | ------------------------------------------------------------------------ |
+| `frg-icon`     | すべてのアイコン                                 | 正方形の箱（大きさと位置は上の「大きさ・位置・色」）                     |
+| `frg-fonticon` | アイコンフォントのアイコン                       | 合字を有効にし、文字の間隔や折り返しなどを周りから受け継がないようにする |
+| `frg-svgicon`  | SVG の部品・`SvgIconFrame`・スプライトのアイコン | 中の `<svg>` を箱いっぱいに描く（`fill` などの色は指定しない）           |
 
 クラスの規則は詳細度が 0（`:where()`）なので、利用者の CSS でそのまま上書きできます。
 
 ### 型
 
-| 型                        | 説明                                                                                      |
-| ------------------------- | ----------------------------------------------------------------------------------------- |
-| `FontIconDefinition<V>`   | `createFontIcon`・`createFontIconProps` の定義                                            |
-| `FontIconText<V>`         | 定義の `text`                                                                             |
-| `FontIconProps<V>`        | `createFontIcon` で作った部品のプロパティ（`value` と `<span>` の props）                 |
-| `FontIconComponent<V>`    | `createFontIcon` で作った部品                                                             |
-| `FontIconWebFont`         | `webFonts` の要素（`family`・`weight?`・`style?`）                                        |
-| `SvgIconSlotProps`        | `createSvgIcon` が組み込んだ部品に渡す props（`<svg>` の props）                          |
-| `SvgIconSet<V>`           | `createSvgIcon` に渡す、名前と SVG の部品の対応表                                         |
-| `SvgIconProps<V>`         | `createSvgIcon` で作った部品のプロパティ                                                  |
-| `SvgIconComponent<V>`     | `createSvgIcon` で作った部品                                                              |
-| `SvgIconFrameProps`       | `SvgIconFrame` のプロパティ（`<svg>` の props）                                           |
-| `SpriteIconDefinition<V>` | `createSpriteIcon` の定義                                                                 |
-| `SpriteIconProps<V>`      | `createSpriteIcon` で作った部品のプロパティ                                               |
-| `SpriteIconComponent<V>`  | `createSpriteIcon` で作った部品                                                           |
-| `PrefixedIconSlotProps`   | `createPrefixedIcon` で作った部品が受け取り、対応表の部品に渡す props（`value` を除く）   |
-| `PrefixedIconSet`         | `createPrefixedIcon` に渡す、接頭辞とアイコンの部品の対応表                               |
-| `PrefixedIconValue<S>`    | `createPrefixedIcon` で作った部品の `value` の型（`接頭辞:名前`）                         |
-| `PrefixedIconProps<S>`    | `createPrefixedIcon` で作った部品のプロパティ                                             |
-| `PrefixedIconComponent<S>` | `createPrefixedIcon` で作った部品                                                        |
+| 型                         | 説明                                                                                                                                         |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `FontIconDefinition<V>`    | `createFontIcon`・`createFontIconProps` の定義                                                                                               |
+| `FontIconText<V>`          | 定義の `text`                                                                                                                                |
+| `FontIconProps<V>`         | `createFontIcon` で作った部品のプロパティ（`value` と `<span>` の props）                                                                    |
+| `FontIconComponent<V>`     | `createFontIcon` で作った部品                                                                                                                |
+| `FontIconWebFont`          | `webFonts` の要素（`family`・`weight?`・`style?`）                                                                                           |
+| `SvgIconSet<V>`            | `createSvgIcon` に渡す、名前と SVG の部品の対応表                                                                                            |
+| `SvgIconProps<V>`          | `createSvgIcon` で作った部品のプロパティ（`value` と `<span>` の props）                                                                     |
+| `SvgIconComponent<V>`      | `createSvgIcon` で作った部品                                                                                                                 |
+| `SvgIconFrameProps`        | `SvgIconFrame` のプロパティ（`<span>` の props と、`<svg>` の `viewBox`・`fill`・`children`）                                                |
+| `SpriteIconDefinition<V>`  | `createSpriteIcon` の定義                                                                                                                    |
+| `SpriteIconProps<V>`       | `createSpriteIcon` で作った部品のプロパティ（`value` と `<span>` の props）                                                                  |
+| `SpriteIconComponent<V>`   | `createSpriteIcon` で作った部品                                                                                                              |
+| `IconSlotProps<V>`         | アイコンの口に組み込む部品が受け取る props（`@fringeworks/react-contract` の型）。`createPrefixedIcon` で作った部品も、この props を受け取る |
+| `IconComponent<V>`         | アイコンの口に組み込める部品（`@fringeworks/react-contract` の型）。`createPrefixedIcon` の対応表の部品の型                                  |
+| `PrefixedIconSet`          | `createPrefixedIcon` に渡す、接頭辞とアイコンの部品の対応表                                                                                  |
+| `PrefixedIconValue<S>`     | `createPrefixedIcon` で作った部品の `value` の型（`接頭辞:名前`）                                                                            |
+| `PrefixedIconProps<S>`     | `createPrefixedIcon` で作った部品のプロパティ                                                                                                |
+| `PrefixedIconComponent<S>` | `createPrefixedIcon` で作った部品                                                                                                            |
 
 ## ライセンス
 

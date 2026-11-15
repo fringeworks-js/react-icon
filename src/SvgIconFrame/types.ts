@@ -1,6 +1,17 @@
-import type { ComponentPropsWithRef } from 'react';
+import type { ComponentPropsWithRef, ReactNode, SVGProps } from 'react';
 
 /**
- * `SvgIconFrame` のプロパティ（`<svg>` の props）
+ * `SvgIconFrame` のプロパティ\
+ * `viewBox`・`fill`・`children` は `<svg>` に、それ以外（`className`・`style`・`aria-*`・`ref` など）は
+ * アイコンの箱の `<span>` に渡す
  */
-export type SvgIconFrameProps = ComponentPropsWithRef<'svg'>;
+export type SvgIconFrameProps = Omit<
+  ComponentPropsWithRef<'span'>,
+  'children'
+> &
+  Pick<SVGProps<SVGSVGElement>, 'viewBox' | 'fill'> & {
+    /**
+     * `<svg>` の子要素（`<path>` など）
+     */
+    children?: ReactNode;
+  };

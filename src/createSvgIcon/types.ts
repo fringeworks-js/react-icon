@@ -2,22 +2,17 @@ import type { ValueProps } from '@fringeworks/react-contract';
 import type { ComponentPropsWithRef, ComponentType, ReactElement } from 'react';
 
 /**
- * `createSvgIcon` が、組み込んだ SVG の部品に渡す props（`<svg>` の props）\
- * 部品は、受け取った props（`className`・`style`・`aria-*`・`ref` など）を `<svg>` に渡す必要がある
+ * `createSvgIcon` に渡す、アイコンの名前と SVG の部品の対応表\
+ * 部品は `<svg>` を描くもの（lucide-react・heroicons の部品など）。props は渡さない
  */
-export type SvgIconSlotProps = Omit<ComponentPropsWithRef<'svg'>, 'children'>;
+export type SvgIconSet<V extends string> = Readonly<Record<V, ComponentType>>;
 
 /**
- * `createSvgIcon` に渡す、アイコンの名前と SVG の部品の対応表
+ * `createSvgIcon` で作ったアイコンの部品のプロパティ\
+ * `value` 以外は、アイコンの箱の `<span>` に渡す
  */
-export type SvgIconSet<V extends string> = Readonly<
-  Record<V, ComponentType<SvgIconSlotProps>>
->;
-
-/**
- * `createSvgIcon` で作ったアイコンの部品のプロパティ
- */
-export type SvgIconProps<V extends string> = ValueProps<V> & SvgIconSlotProps;
+export type SvgIconProps<V extends string> = ValueProps<V> &
+  Omit<ComponentPropsWithRef<'span'>, 'children'>;
 
 /**
  * `createSvgIcon` で作ったアイコンの部品

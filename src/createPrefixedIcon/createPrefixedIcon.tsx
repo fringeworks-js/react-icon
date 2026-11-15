@@ -1,13 +1,12 @@
-import type { ValueProps } from '@fringeworks/react-contract';
+import type { IconComponent } from '@fringeworks/react-contract';
 import { mergeProps } from '@fringeworks/react-merge';
 import { hasOwn } from '@fringeworks/utils/object/hasOwn';
-import type { ComponentPropsWithRef, ComponentType } from 'react';
+import type { ComponentPropsWithRef } from 'react';
 import createIconAriaProps from '../_internal/_createIconAriaProps';
 import type {
   PrefixedIconComponent,
   PrefixedIconProps,
   PrefixedIconSet,
-  PrefixedIconSlotProps,
 } from './types';
 
 /**
@@ -15,7 +14,7 @@ import type {
  * 設定（JSON など）の文字列から、種類の違うアイコンのセットを混ぜて選ぶときに使う。
  * 作った部品は `value` を最初の `:` で分け、接頭辞の部品に名前と props を渡す。名前の型は対応表の部品から決まる
  *
- * - `value` 以外に受け取る props は `PrefixedIconSlotProps`（`className`・`style`・読み上げの props など）だけ
+ * - `value` 以外に受け取る props は、react-contract の `IconSlotProps` のもの（`className`・`style`・読み上げの props など）だけ
  * - 対応表に無い接頭辞や、`:` の無い値を受け取ったときは、空の箱（`<span class="frg-icon">`）を描き、並びを崩さない
  * - 接頭辞はあるが名前がそのセットに無いときの扱いは、そのセットの部品に任せる
  * - 見た目には `@fringeworks/react-icon/styles.css` が要る
@@ -45,9 +44,7 @@ export default function createPrefixedIcon<S extends PrefixedIconSet>(
       );
     }
     // 名前がそのセットにあるかは確かめず、部品に任せるため、名前を string として渡す
-    const Icon = icons[prefix] as ComponentType<
-      ValueProps<string> & PrefixedIconSlotProps
-    >;
+    const Icon = icons[prefix] as IconComponent<string>;
     return <Icon {...rest} value={value.slice(index + 1)} />;
   }
 

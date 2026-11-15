@@ -6,11 +6,12 @@ describe('createSpriteIcon', () => {
   it('ファイルの URL と名前から href を作り、use で描く', () => {
     const Icon = createSpriteIcon<'home' | 'menu'>({ href: '/icons.svg' });
     const { container } = render(<Icon value="home" />);
+    const span = container.firstElementChild;
+    expect(span?.getAttribute('class')).toBe('frg-icon frg-svgicon');
+    expect(span?.getAttribute('aria-hidden')).toBe('true');
     const svg = container.querySelector('svg');
-    expect(svg?.getAttribute('class')).toBe('frg-icon frg-svgicon');
     expect(svg?.getAttribute('viewBox')).toBe('0 0 24 24');
     expect(svg?.getAttribute('fill')).toBe('currentColor');
-    expect(svg?.getAttribute('aria-hidden')).toBe('true');
     expect(svg?.querySelector('use')?.getAttribute('href')).toBe(
       '/icons.svg#home',
     );
@@ -32,15 +33,16 @@ describe('createSpriteIcon', () => {
     );
   });
 
-  it('その他の props を svg に渡す', () => {
+  it('その他の props を箱の span に渡す', () => {
     const Icon = createSpriteIcon<'cart'>({ href: '/icons.svg' });
-    const ref = createRef<SVGSVGElement>();
+    const ref = createRef<HTMLSpanElement>();
     const { getByRole } = render(
       <Icon value="cart" aria-label="カート" className="mine" ref={ref} />,
     );
-    const svg = getByRole('img', { name: 'カート' });
-    expect(svg.getAttribute('class')).toBe('frg-icon frg-svgicon mine');
-    expect(ref.current).toBe(svg);
+    const span = getByRole('img', { name: 'カート' });
+    expect(span.tagName).toBe('SPAN');
+    expect(span.getAttribute('class')).toBe('frg-icon frg-svgicon mine');
+    expect(ref.current).toBe(span);
   });
 
   it('名前の型は型引数で決まる', () => {
